@@ -85,22 +85,24 @@ workspace.initialize = function() {
     db <<- RSQLite::dbConnect(SQLite(), dbname=paste(project.dir,dbname,sep="/"))
   
     if (!exists("db.pragma",envir=globalenv()) || db.pragma ) {
-      dbGetQuery(db, 'PRAGMA synchronous = OFF;')
-      dbGetQuery(db, 'PRAGMA journal_mode = OFF;')
-      dbGetQuery(db, 'PRAGMA locking_mode = EXCLUSIVE;')
-      dbGetQuery(db, 'PRAGMA temp_store = MEMORY;')
-      dbGetQuery(db, 'PRAGMA count_changes = OFF;')
-      dbGetQuery(db, 'PRAGMA PAGE_SIZE = 4096;')
-      dbGetQuery(db, 'PRAGMA default_cache_size=7000000;')
-      dbGetQuery(db, 'PRAGMA cache_size=5000000;')
-      dbGetQuery(db, 'PRAGMA compile_options;')
+      RSQLite::dbGetQuery(db, 'PRAGMA synchronous = OFF;')
+      RSQLite::dbGetQuery(db, 'PRAGMA journal_mode = OFF;')
+      RSQLite::dbGetQuery(db, 'PRAGMA locking_mode = EXCLUSIVE;')
+      RSQLite::dbGetQuery(db, 'PRAGMA temp_store = MEMORY;')
+      RSQLite::dbGetQuery(db, 'PRAGMA count_changes = OFF;')
+      RSQLite::dbGetQuery(db, 'PRAGMA PAGE_SIZE = 4096;')
+      RSQLite::dbGetQuery(db, 'PRAGMA default_cache_size=7000000;')
+      RSQLite::dbGetQuery(db, 'PRAGMA cache_size=5000000;')
+      RSQLite::dbGetQuery(db, 'PRAGMA compile_options;')
     } 
   }
 
-  if (exists("db",envir=globalenv()) && exists("dbattach",envir=globalenv())) {
-    for (item in dbattach) {
-      item.name =  gsub(".*/","",gsub("\\.sqlite","",item))
-      dbGetQuery(db, paste('attach ','"',item,'"',' as ', item.name, sep="") )
+  if (exists("dbattach",envir=globalenv())) {
+    if ( !exists("dbname",envir=globalenv()) ) {
+      db <<- RSQLite::dbConnect(SQLite(), dbname=":memory:")
+    }
+    for (item in names(dbattach)) {
+      RSQLite::dbGetQuery(db, paste('attach ','"',dbattach[[item]],'"',' as ', item, sep="") )
     }
   }
   
