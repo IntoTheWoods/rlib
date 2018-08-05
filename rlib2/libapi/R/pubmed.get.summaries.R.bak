@@ -1,0 +1,35 @@
+pubmed.get.summaries = function(pmids) {
+  library(XML)
+
+  ## divide pmids into groups so as not to exceed the maximum url length
+  max.pmids=200
+  num.groups = ceiling(length(pmids)/max.pmids)
+  pmid.groups = split(pmids,factor(1:length(pmids)%%num.groups))
+  
+  data.xml = xmlNode(name="pubmed")
+  for (pmids in pmid.groups) {
+    pmid_string = paste(pmids,collapse=",")
+    xml.url = paste("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&rettype=abstract&id=",pmid_string,sep="")
+    output = xmlRoot(xmlTreeParse(xml.url))
+    data.xml=append.xmlNode(data.xml,xmlChildren(output))
+    #output = xmlTreeParse(system(paste('wget -qO- --ignore-length "',xml.url,'"',sep=""),intern=T))
+  }
+  
+  data <- xmlSApply(data.xml, function(x) xmlSApply(x, xmlValue, simplify=F), simplify=F)
+  
+
+  ## get attributes for every DocSum
+  xml.attrib = xmlSApply(data.xml, function(x) xmlSApply(x, xmlAttrs, simplify=F), simplify=F)
+  xml.attrib.noId=sapply(xml.attrib, function(x) Filter(Negate(is.null),x), simplify=F)
+  xml.labels = sapply(xml.attrib.noId, function(x) as.character(t(as.data.frame(x)[1,])), simplify=F)
+  xml.labels = sapply(xml.labels, function(x) c("Id",x), simplify=F)
+  
+  for (i in 1:length(data)) {
+    names(data[[i]])=xml.labels[[i]]
+    data[[i]] = sapply(data[[i]], function(x) {if(length(x)==0) { ""} else {x}})
+  }
+  
+  as.data.frame.list.mod(data, row.names=NULL)
+
+}
+

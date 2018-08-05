@@ -1,0 +1,11 @@
+---
+title: "Shiny Doc"
+output: html_document
+runtime: shiny
+---
+
+```{r, echo=FALSE}
+shinyApp(
+  
+)
+```
