@@ -12,6 +12,7 @@ pubmed.get.summaries = function(pmids) {
     xml.url = paste("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&rettype=abstract&id=",pmid_string,sep="")
     output = xmlRoot(xmlTreeParse(httpGET(xml.url)))
     data.xml=append.xmlNode(data.xml,xmlChildren(output))
+    Sys.sleep(0.2)
   }
  
   ## list of xml nodes 
